@@ -1,32 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>4-Generation Rabbit Pedigree (Android)</title>
 
-   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  
-  <title>4-Generation Rabbit Pedigree</title>
   <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: white;
+      font-family: Arial, sans-serif;
+    }
 
-    body, html {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;        /* no visible scroll bars */
-}
+    #toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: white;
+      padding: 10px;
+      border-bottom: 1px solid #d0d0d0;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
 
-svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  user-select: none;
-  cursor: grab;
-  -webkit-user-drag: none;
-  touch-action: none;      /* let pan/zoom library handle gestures */
-}
+    #export-btn {
+      padding: 10px 16px;
+      background-color: #4A4A4A;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    #container {
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      background: white;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Keep SVG stable for Android WebView */
+    svg {
+      display: block;
+      width: 1200px;       /* stable layout on phones; user can scroll horizontally */
+      height: auto;
+      background: white;
+      margin: 0 auto;
+    }
+
+    #background-image {
+      pointer-events: none;
+    }
+
     .box {
-      width: 220px;
+      width: 320px;
       height: 125px;
       rx: 10;
       ry: 10;
@@ -34,816 +67,535 @@ svg {
       stroke-width: 1.5;
       fill: white;
     }
-    .male {
-      fill: #cce5ff; /* light blue */
-    }
-    .female {
-      fill: #f8d7da; /* light pink */
-    }
+
+    .male { fill: #cce5ff; }
+    .female { fill: #f8d7da; }
+
     text {
       font-size: 14px;
       font-family: Arial, sans-serif;
     }
-    .name {
-      font-weight: bold;
-      font-size: 16px;
-    }
-  .title {
-      font-weight: bold;
-      font-size: 20px;
-    }
 
-    #pedigree-container {
-  width: 100vw;
-  height: 100vh;
-  max-width: 11in;
-  max-height: 8.5in;
-  box-sizing: border-box;
-  margin: 0 auto;
-  overflow: hidden;        /* keeps the SVG bounded visually */
-}
-    
-@media print {
-  #print-btn {
-    display: none !important;
-  }
-}
-    
+    .name { font-weight: bold; font-size: 16px; }
+    .title { font-weight: bold; font-size: 20px; }
+
+    .credit {
+      font-size: 12px;
+      fill: #000;
+    }
   </style>
-  
+
+  <script>
+    function getParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      const value = params.get(name) || '';
+      // Decode URL entities and escape HTML
+      return value
+        .replaceAll('+', ' ')
+        .replace(/%26/g, '&')
+        .replace(/%27/g, "'")
+        .replace(/%20/g, ' ')
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+  </script>
 </head>
+
 <body>
-  
-  <div id="pedigree-container">
-<svg id="pedigree-svg" viewBox="0 0 1600 850">
+  <div id="toolbar">
+    <button id="export-btn">Save / Print Pedigree</button>
+  </div>
 
-    <image id="logo" x="40" y="-100" width="120" height="120" preserveAspectRatio="xMinYMin meet"></image>
-    <g transform="translate(155,30)">
-      <text x="40" y="-100" text-anchor="left" class="name" data-field="rabbitry"></text>
-      <text x="40" y="-80" text-anchor="left" class="name" data-field="street"></text>
-      <text x="40" y="-60" text-anchor="left" class="name" data-chain="city,state,zip"></text>
-      <text x="40" y="-40" text-anchor="left" class="name" data-field="phone"></text>
-      <text x="40" y="-20" text-anchor="left" class="name" data-field="email"></text>
+  <div id="container">
+    <div id="pedigree-container">
+      <svg id="pedigree-svg"
+           viewBox="-80 -170 1750 1400"
+           preserveAspectRatio="xMidYMid meet"
+           xmlns="http://www.w3.org/2000/svg"
+           xmlns:xlink="http://www.w3.org/1999/xlink">
 
-      <text x="20" y="40" text-anchor="left" class="name">Breed:</text>
-      <text x="80" y="40" text-anchor="left" class="name" data-field="breed"></text>
-      
-    </g>
+        <image
+          id="background-image"
+          x="-125"
+          y="-290"
+          width="1800"
+          height="1500"
+          preserveAspectRatio="xMidYMid meet"
+        />
 
-    <!-- Signature / authenticity bottom-left -->
-    <g transform="translate(20,740)">
-      <text class="name" x="40" y="200">I hereby certify that this pedigree is correct to the best of my knowledge.</text>
-      <line x1="40" y1="260" x2="350" y2="260" stroke="#000" stroke-width="1" />
-      <text class="name" x="40" y="280">Breeder's Signature</text>
-    </g>
-  
+        <g id="header" transform="translate(100, -40)">
+          <image
+            id="logo"
+            x="0"
+            y="-40"
+            width="140"
+            height="140"
+            preserveAspectRatio="xMidYMid meet"
+          />
 
-  <!-- GEN 1 - Base Rabbit -->
-  <rect x="100" y="380" width="220" height="90" class="box"/>
-  <text x="110" y="400" text-anchor="left" class="name" data-chain="crabbitry,name"></text>
-  <text x="110" y="420" text-anchor="left" class="label">Color:</text>
-  <text x="150" y="420" text-anchor="left" data-field="color">  </text>
-  <text x="110" y="440" text-anchor="left" class="label">Ear#:</text>
-  <text x="150" y="440" text-anchor="left" data-field="ear number"></text>
-  <text x="220" y="440" text-anchor="left" class="label">Weight:</text>
-  <text x="270" y="440" text-anchor="left" data-field="weight"></text>
-  <text x="110" y="460" text-anchor="left" class="label">Sex:</text>
-  <text x="150" y="460" text-anchor="left" data-field="sex"></text>
-  <text x="220" y="460" text-anchor="left" class="label">Legs:</text>
-  <text x="260" y="460" text-anchor="left" data-field="legs"> </text>
-  <text x="110" y="480" text-anchor="left" class="label">Reg#:</text>
-  <text x="150" y="480" text-anchor="left" data-field="reg"></text>
-  <text x="220" y="480" text-anchor="left" class="label">GC#:</text>
-  <text x="260" y="480" text-anchor="left" data-field="gc"></text>
-  <text x="110" y="500" text-anchor="left" class="label">DOB:</text>
-  <text x="150" y="500" text-anchor="left" data-field="dob"></text>
-  
+          <g transform="translate(160, -10)">
+            <text x="0" y="0" text-anchor="start" class="title" data-field="rabbitry"></text>
+            <text x="0" y="20" text-anchor="start" class="name" data-field="street"></text>
+            <text x="0" y="40" text-anchor="start" class="name" data-chain="city,state,zip"></text>
+            <text x="0" y="60" text-anchor="start" class="name" data-field="phone"></text>
+            <text x="0" y="80" text-anchor="start" class="name" data-field="email"></text>
+            <text x="0" y="110" text-anchor="start" class="name">Breed:</text>
+            <text x="60" y="110" text-anchor="start" class="name" data-field="breed"></text>
+          </g>
+        </g>
 
-  <!-- Lines Gen1 → Gen2 -->
-  <line x1="320" y1="440" x2="450" y2="165" stroke="black"/>
-  <line x1="320" y1="440" x2="450" y2="715" stroke="black"/>
+        <g transform="translate(20,740)">
+          <text class="name" x="40" y="200">I hereby certify that this pedigree is correct to the best of my knowledge.</text>
+          <line x1="40" y1="260" x2="350" y2="260" stroke="#000" stroke-width="1" />
+          <text class="name" x="40" y="280">Breeder's Signature</text>
+        </g>
 
-  <!-- GEN 2 -->
-  <!-- Sire -->
-  <rect x="450" y="100" width="220" height="90" class="box male" data-slot="sire"/>
-  <text x="460" y="120" text-anchor="left" class="name" data-chain="srabbitry,sire"></text>
-  <text x="460" y="140" text-anchor="left" class="label">Color:</text>
-  <text x="500" y="140" text-anchor="left" data-field="scolor">  </text>
-  <text x="460" y="160" text-anchor="left" class="label">Ear#:</text>
-  <text x="500" y="160" text-anchor="left" data-field="sear"></text>
-  <text x="580" y="160" text-anchor="left" class="label">Weight:</text>
-  <text x="630" y="160" text-anchor="left" data-field="sweight"></text>
-  <text x="460" y="180" text-anchor="left" class="label">Sex:</text>
-  <text x="500" y="180" text-anchor="left" data-field="ssex"></text>
-  <text x="580" y="180" text-anchor="left" class="label">Legs:</text>
-  <text x="620" y="180" text-anchor="left" data-field="slegs"> </text>
-  <text x="460" y="200" text-anchor="left" class="label">Reg#:</text>
-  <text x="500" y="200" text-anchor="left" data-field="sreg"></text>
-  <text x="580" y="200" text-anchor="left" class="label">GC#:</text>
-  <text x="620" y="200" text-anchor="left" data-field="sgc"></text>
-  <text x="460" y="220" text-anchor="left" class="label">DOB:</text>
-  <text x="500" y="220" text-anchor="left" data-field="sdob"></text>
- 
+        <image
+          id="signature"
+          x="40"
+          y="950"
+          width="220"
+          height="80"
+          preserveAspectRatio="xMidYMid meet"
+        />
 
-  
-  <!-- Lines Gen2 → Gen3 -->
-  <line x1="670" y1="165" x2="800" y2="35" stroke="black"/>
-  <line x1="670" y1="165" x2="800" y2="300" stroke="black"/>
+        <rect x="100" y="380" width="220" height="90" class="box"/>
+        <text x="110" y="400" text-anchor="left" class="name" data-chain="crabbitry,name"></text>
+        <text x="110" y="420" text-anchor="left" class="label">Color:</text>
+        <text x="150" y="420" text-anchor="left" data-field="color">  </text>
+        <text x="110" y="440" text-anchor="left" class="label">Ear#:</text>
+        <text x="150" y="440" text-anchor="left" data-field="ear number"></text>
+        <text x="270" y="440" text-anchor="left" class="label">Weight:</text>
+        <text x="320" y="440" text-anchor="left" data-field="weight"></text>
+        <text x="110" y="460" text-anchor="left" class="label">Sex:</text>
+        <text x="150" y="460" text-anchor="left" data-field="sex"></text>
+        <text x="270" y="460" text-anchor="left" class="label">Legs:</text>
+        <text x="310" y="460" text-anchor="left" data-field="legs"> </text>
+        <text x="110" y="480" text-anchor="left" class="label">Reg#:</text>
+        <text x="150" y="480" text-anchor="left" data-field="reg"></text>
+        <text x="270" y="480" text-anchor="left" class="label">GC#:</text>
+        <text x="310" y="480" text-anchor="left" data-field="gc"></text>
+        <text x="110" y="500" text-anchor="left" class="label">DOB:</text>
+        <text x="150" y="500" text-anchor="left" data-field="dob"></text>
 
-  <!-- Dam -->
-  <rect x="450" y="650" width="200" height="90" class="box female"/>
-  <text x="460" y="670" text-anchor="left" class="name" data-chain="drabbitry,dam"></text>
-  <text x="460" y="690" text-anchor="left" class="label">Color:</text>
-  <text x="500" y="690" text-anchor="left" data-field="dcolor">  </text>
-  <text x="460" y="710" text-anchor="left" class="label">Ear#:</text>
-  <text x="500" y="710" text-anchor="left" data-field="dear">Sex:</text>
-  <text x="580" y="710" text-anchor="left" class="label">Weight:</text>
-  <text x="630" y="710" text-anchor="left" data-field="dweight"></text>
-  <text x="460" y="730" text-anchor="left" class="label">Sex:</text>
-  <text x="500" y="730" text-anchor="left" data-field="dsex"></text>
-  <text x="580" y="730" text-anchor="left" class="label">Legs:</text>
-  <text x="620" y="730" text-anchor="left" data-field="dlegs"> </text>
-  <text x="460" y="750" text-anchor="left" class="label">Reg#:</text>
-  <text x="500" y="750" text-anchor="left" data-field="dreg"></text>
-  <text x="580" y="750" text-anchor="left" class="label">GC#:</text>
-  <text x="620" y="750" text-anchor="left" data-field="dgc"></text>
-  <text x="460" y="770" text-anchor="left" class="label">DOB:</text>
-  <text x="500" y="770" text-anchor="left" data-field="ddob"></text>
+        <line x1="420" y1="440" x2="450" y2="165" stroke="black"/>
+        <line x1="420" y1="440" x2="450" y2="715" stroke="black"/>
 
+        <rect x="450" y="100" width="220" height="90" class="box male" data-slot="sire"/>
+        <text x="460" y="120" text-anchor="left" class="name" data-chain="srabbitry,sire"></text>
+        <text x="460" y="140" text-anchor="left" class="label">Color:</text>
+        <text x="500" y="140" text-anchor="left" data-field="scolor">  </text>
+        <text x="460" y="160" text-anchor="left" class="label">Ear#:</text>
+        <text x="500" y="160" text-anchor="left" data-field="sear"></text>
+        <text x="620" y="160" text-anchor="left" class="label">Weight:</text>
+        <text x="680" y="160" text-anchor="left" data-field="sweight"></text>
+        <text x="460" y="180" text-anchor="left" class="label">Sex:</text>
+        <text x="500" y="180" text-anchor="left" data-field="ssex"></text>
+        <text x="620" y="180" text-anchor="left" class="label">Legs:</text>
+        <text x="680" y="180" text-anchor="left" data-field="slegs"> </text>
+        <text x="460" y="200" text-anchor="left" class="label">Reg#:</text>
+        <text x="500" y="200" text-anchor="left" data-field="sreg"></text>
+        <text x="620" y="200" text-anchor="left" class="label">GC#:</text>
+        <text x="680" y="200" text-anchor="left" data-field="sgc"></text>
+        <text x="460" y="220" text-anchor="left" class="label">DOB:</text>
+        <text x="500" y="220" text-anchor="left" data-field="sdob"></text>
 
+        <line x1="770" y1="165" x2="800" y2="35" stroke="black"/>
+        <line x1="770" y1="165" x2="800" y2="300" stroke="black"/>
 
-  <!-- Lines Gen2 → Gen3 -->
-  <line x1="670" y1="715" x2="800" y2="580" stroke="black"/>
-  <line x1="670" y1="715" x2="800" y2="850" stroke="black"/>
+        <rect x="450" y="650" width="200" height="90" class="box female"/>
+        <text x="460" y="670" text-anchor="left" class="name" data-chain="drabbitry,dam"></text>
+        <text x="460" y="690" text-anchor="left" class="label">Color:</text>
+        <text x="500" y="690" text-anchor="left" data-field="dcolor">  </text>
+        <text x="460" y="710" text-anchor="left" class="label">Ear#:</text>
+        <text x="500" y="710" text-anchor="left" data-field="dear">Sex:</text>
+        <text x="620" y="710" text-anchor="left" class="label">Weight:</text>
+        <text x="680" y="710" text-anchor="left" data-field="dweight"></text>
+        <text x="460" y="730" text-anchor="left" class="label">Sex:</text>
+        <text x="500" y="730" text-anchor="left" data-field="dsex"></text>
+        <text x="620" y="730" text-anchor="left" class="label">Legs:</text>
+        <text x="680" y="730" text-anchor="left" data-field="dlegs"> </text>
+        <text x="460" y="750" text-anchor="left" class="label">Reg#:</text>
+        <text x="500" y="750" text-anchor="left" data-field="dreg"></text>
+        <text x="620" y="750" text-anchor="left" class="label">GC#:</text>
+        <text x="680" y="750" text-anchor="left" data-field="dgc"></text>
+        <text x="460" y="770" text-anchor="left" class="label">DOB:</text>
+        <text x="500" y="770" text-anchor="left" data-field="ddob"></text>
 
-  <!-- GEN 3 -->
+        <line x1="770" y1="715" x2="800" y2="580" stroke="black"/>
+        <line x1="770" y1="715" x2="800" y2="850" stroke="black"/>
 
-  <!-- Sire - Grand Sire -->
-  <rect x="800" y="-35" width="200" height="90" class="box male"/>
-  <text x="810" y="-15" text-anchor="left" class="name" data-chain="ssrabbitry,ssire"></text>
-  <text x="810" y="5" text-anchor="left" class="label">Color:</text>
-  <text x="850" y="5" text-anchor="left" data-field="sscolor">  </text>
-  <text x="810" y="25" text-anchor="left" class="label">Ear#:</text>
-  <text x="850" y="25" text-anchor="left" data-field="ssear"></text>
-  <text x="930" y="25" text-anchor="left" class="label">Weight:</text>
-  <text x="980" y="25" text-anchor="left" data-field="ssweight"></text>
-  <text x="810" y="45" text-anchor="left" class="label">Sex:</text>
-  <text x="850" y="45" text-anchor="left" data-field="sssex"></text>
-  <text x="930" y="45" text-anchor="left" class="label">Legs:</text>
-  <text x="970" y="45" text-anchor="left" data-field="sslegs"> </text>
-  <text x="810" y="65" text-anchor="left" class="label">Reg#:</text>
-  <text x="850" y="65" text-anchor="left" data-field="ssreg"></text>
-  <text x="930" y="65" text-anchor="left" class="label">GC#:</text>
-  <text x="970" y="65" text-anchor="left" data-field="ssgc"></text>
-  <text x="810" y="85" text-anchor="left" class="label">DOB:</text>
-  <text x="850" y="85" text-anchor="left" data-field="ssdob"></text>
+        <rect x="800" y="-35" width="200" height="90" class="box male"/>
+        <text x="810" y="-15" text-anchor="left" class="name" data-chain="ssrabbitry,ssire"></text>
+        <text x="810" y="5" text-anchor="left" class="label">Color:</text>
+        <text x="850" y="5" text-anchor="left" data-field="sscolor">  </text>
+        <text x="810" y="25" text-anchor="left" class="label">Ear#:</text>
+        <text x="850" y="25" text-anchor="left" data-field="ssear"></text>
+        <text x="980" y="25" text-anchor="left" class="label">Weight:</text>
+        <text x="1030" y="25" text-anchor="left" data-field="ssweight"></text>
+        <text x="810" y="45" text-anchor="left" class="label">Sex:</text>
+        <text x="850" y="45" text-anchor="left" data-field="sssex"></text>
+        <text x="980" y="45" text-anchor="left" class="label">Legs:</text>
+        <text x="1030" y="45" text-anchor="left" data-field="sslegs"> </text>
+        <text x="810" y="65" text-anchor="left" class="label">Reg#:</text>
+        <text x="850" y="65" text-anchor="left" data-field="ssreg"></text>
+        <text x="980" y="65" text-anchor="left" class="label">GC#:</text>
+        <text x="1030" y="65" text-anchor="left" data-field="ssgc"></text>
+        <text x="810" y="85" text-anchor="left" class="label">DOB:</text>
+        <text x="850" y="85" text-anchor="left" data-field="ssdob"></text>
 
-  
-  <!-- Lines Gen3 → Gen4 --> 
-  <line x1="1020" y1="35" x2="1150" y2="-35" stroke="black"/>
-  <line x1="1020" y1="35" x2="1150" y2="100" stroke="black"/>
-  
-  <!-- Sire - Grand Dam -->
-  <rect x="800" y="235" width="200" height="90" class="box female"/>
-  <text x="810" y="255" text-anchor="left" class="name" data-chain="sdrabbitry,sdam"></text>
-  <text x="810" y="275" text-anchor="left" class="label">Color:</text>
-  <text x="850" y="275" text-anchor="left" data-field="sdcolor">  </text>
-  <text x="810" y="295" text-anchor="left" class="label">Ear#:</text>
-  <text x="850" y="295" text-anchor="left" data-field="sdear"></text>
-  <text x="930" y="295" text-anchor="left" class="label">Weight:</text>
-  <text x="980" y="295" text-anchor="left" data-field="sdweight"></text>
-  <text x="810" y="315" text-anchor="left" class="label">Sex:</text>
-  <text x="850" y="315" text-anchor="left" data-field="sdsex"></text>
-  <text x="930" y="315" text-anchor="left" class="label">Legs:</text>
-  <text x="970" y="315" text-anchor="left" data-field="sdlegs"> </text>
-  <text x="810" y="335" text-anchor="left" class="label">Reg#:</text>
-  <text x="850" y="335" text-anchor="left" data-field="sdreg"></text>
-  <text x="930" y="335" text-anchor="left" class="label">GC#:</text>
-  <text x="970" y="335" text-anchor="left" data-field="sdgc"></text>
-  <text x="810" y="355" text-anchor="left" class="label">DOB:</text>
-  <text x="850" y="355" text-anchor="left" data-field="sddob"></text>
-  
+        <line x1="1120" y1="35" x2="1150" y2="-35" stroke="black"/>
+        <line x1="1120" y1="35" x2="1150" y2="100" stroke="black"/>
 
-  <!-- Lines Gen3 → Gen4 -->
-  <line x1="1020" y1="300" x2="1150" y2="235" stroke="black"/>
-  <line x1="1020" y1="300" x2="1150" y2="370" stroke="black"/>
-  
-  <!-- Dam - Grand Sire -->
-  <rect x="800" y="515" width="200" height="90" class="box male"/>
-  <text x="810" y="535" text-anchor="left" class="name" data-chain="dsrabbitry,dsire"></text>
-  <text x="810" y="555" text-anchor="left" class="label">Color:</text>
-  <text x="850" y="555" text-anchor="left" data-field="dscolor">  </text>
-  <text x="810" y="575" text-anchor="left" class="label">Ear#:</text>
-  <text x="850" y="575" text-anchor="left" data-field="dsear"></text>
-  <text x="930" y="575" text-anchor="left" class="label">Weight:</text>
-  <text x="980" y="575" text-anchor="left" data-field="dsweight"></text>
-  <text x="810" y="595" text-anchor="left" class="label">Sex:</text>
-  <text x="850" y="595" text-anchor="left" data-field="dssex"></text>
-  <text x="930" y="595" text-anchor="left" class="label">Legs:</text>
-  <text x="970" y="595" text-anchor="left" data-field="dslegs"> </text>
-  <text x="810" y="615" text-anchor="left" class="label">Reg#:</text>
-  <text x="850" y="615" text-anchor="left" data-field="dsreg"></text>
-  <text x="930" y="615" text-anchor="left" class="label">GC#:</text>
-  <text x="970" y="615" text-anchor="left" data-field="dsgc"></text>
-  <text x="810" y="635" text-anchor="left" class="label">DOB:</text>
-  <text x="850" y="635" text-anchor="left" data-field="dsdob"></text>
-  
+        <rect x="800" y="235" width="200" height="90" class="box female"/>
+        <text x="810" y="255" text-anchor="left" class="name" data-chain="sdrabbitry,sdam"></text>
+        <text x="810" y="275" text-anchor="left" class="label">Color:</text>
+        <text x="850" y="275" text-anchor="left" data-field="sdcolor">  </text>
+        <text x="810" y="295" text-anchor="left" class="label">Ear#:</text>
+        <text x="850" y="295" text-anchor="left" data-field="sdear"></text>
+        <text x="980" y="295" text-anchor="left" class="label">Weight:</text>
+        <text x="1030" y="295" text-anchor="left" data-field="sdweight"></text>
+        <text x="810" y="315" text-anchor="left" class="label">Sex:</text>
+        <text x="850" y="315" text-anchor="left" data-field="sdsex"></text>
+        <text x="980" y="315" text-anchor="left" class="label">Legs:</text>
+        <text x="1030" y="315" text-anchor="left" data-field="sdlegs"> </text>
+        <text x="810" y="335" text-anchor="left" class="label">Reg#:</text>
+        <text x="850" y="335" text-anchor="left" data-field="sdreg"></text>
+        <text x="980" y="335" text-anchor="left" class="label">GC#:</text>
+        <text x="1030" y="335" text-anchor="left" data-field="sdgc"></text>
+        <text x="810" y="355" text-anchor="left" class="label">DOB:</text>
+        <text x="850" y="355" text-anchor="left" data-field="sddob"></text>
 
-  <!-- Lines Gen3 → Gen4 -->
-  <line x1="1020" y1="580" x2="1150" y2="515" stroke="black"/>
-  <line x1="1020" y1="580" x2="1150" y2="650" stroke="black"/>
-  
-  <!-- Dam - Grand Dam -->
-  <rect x="800" y="785" width="200" height="90" class="box female"/>
-  <text x="810" y="805" text-anchor="left" class="name" data-chain="ddrabbitry,ddam"></text>
-  <text x="810" y="825" text-anchor="left" class="label">Color:</text>
-  <text x="850" y="825" text-anchor="left" data-field="ddcolor">  </text>
-  <text x="810" y="845" text-anchor="left" class="label">Ear#:</text>
-  <text x="850" y="845" text-anchor="left" data-field="ddear"></text>
-  <text x="930" y="845" text-anchor="left" class="label">Weight:</text>
-  <text x="980" y="845" text-anchor="left" data-field="ddweight"></text>
-  <text x="810" y="865" text-anchor="left" class="label">Sex:</text>
-  <text x="850" y="865" text-anchor="left" data-field="ddsex"></text>
-  <text x="930" y="865" text-anchor="left" class="label">Legs:</text>
-  <text x="970" y="865" text-anchor="left" data-field="ddlegs"> </text>
-  <text x="810" y="885" text-anchor="left" class="label">Reg#:</text>
-  <text x="850" y="885" text-anchor="left" data-field="ddreg"></text>
-  <text x="930" y="885" text-anchor="left" class="label">GC#:</text>
-  <text x="970" y="885" text-anchor="left" data-field="ddgc"></text>
-  <text x="810" y="905" text-anchor="left" class="label">DOB:</text>
-  <text x="850" y="905" text-anchor="left" data-field="dddob"></text>
-  
-  
-  <!-- Lines Gen3 → Gen4 -->
-  <line x1="1020" y1="850" x2="1150" y2="785" stroke="black"/>
-  <line x1="1020" y1="850" x2="1150" y2="920" stroke="black"/>
+        <line x1="1120" y1="300" x2="1150" y2="235" stroke="black"/>
+        <line x1="1120" y1="300" x2="1150" y2="370" stroke="black"/>
 
-  <!-- GEN 4 -->
+        <rect x="800" y="515" width="200" height="90" class="box male"/>
+        <text x="810" y="535" text-anchor="left" class="name" data-chain="dsrabbitry,dsire"></text>
+        <text x="810" y="555" text-anchor="left" class="label">Color:</text>
+        <text x="850" y="555" text-anchor="left" data-field="dscolor">  </text>
+        <text x="810" y="575" text-anchor="left" class="label">Ear#:</text>
+        <text x="850" y="575" text-anchor="left" data-field="dsear"></text>
+        <text x="980" y="575" text-anchor="left" class="label">Weight:</text>
+        <text x="1030" y="575" text-anchor="left" data-field="dsweight"></text>
+        <text x="810" y="595" text-anchor="left" class="label">Sex:</text>
+        <text x="850" y="595" text-anchor="left" data-field="dssex"></text>
+        <text x="980" y="595" text-anchor="left" class="label">Legs:</text>
+        <text x="1030" y="595" text-anchor="left" data-field="dslegs"> </text>
+        <text x="810" y="615" text-anchor="left" class="label">Reg#:</text>
+        <text x="850" y="615" text-anchor="left" data-field="dsreg"></text>
+        <text x="980" y="615" text-anchor="left" class="label">GC#:</text>
+        <text x="1030" y="615" text-anchor="left" data-field="dsgc"></text>
+        <text x="810" y="635" text-anchor="left" class="label">DOB:</text>
+        <text x="850" y="635" text-anchor="left" data-field="dsdob"></text>
 
+        <line x1="1120" y1="580" x2="1150" y2="515" stroke="black"/>
+        <line x1="1120" y1="580" x2="1150" y2="650" stroke="black"/>
 
-  <!-- Sire - Grand Sire - Great Grand Sire -->
-  <rect x="1150" y="-100" width="200" height="90" class="box male"/>
-  <text x="1160" y="-80" text-anchor="left" class="name" data-chain="sssrabbitry,sssire"></text>
-  <text x="1160" y="-60" text-anchor="left" class="label">Color:</text>
-  <text x="1200" y="-60" text-anchor="left" data-field="ssscolor">  </text>
-  <text x="1160" y="-40" text-anchor="left" class="label">Ear#:</text>
-  <text x="1200" y="-40" text-anchor="left" data-field="sssear"></text>
-  <text x="1280" y="-40" text-anchor="left" class="label">Weight:</text>
-  <text x="1330" y="-40" text-anchor="left" data-field="sssweight"></text>
-  <text x="1160" y="-20" text-anchor="left" class="label">Sex:</text>
-  <text x="1200" y="-20" text-anchor="left" data-field="ssssex"></text>
-  <text x="1280" y="-20" text-anchor="left" class="label">Legs:</text>
-  <text x="1320" y="-20" text-anchor="left" data-field="ssslegs"> </text>
-  <text x="1160" y="0" text-anchor="left" class="label">Reg#:</text>
-  <text x="1200" y="0" text-anchor="left" data-field="sssreg"></text>
-  <text x="1280" y="0" text-anchor="left" class="label">GC#:</text>
-  <text x="1320" y="0" text-anchor="left" data-field="sssgc"></text>
-  <text x="1160" y="20" text-anchor="left" class="label">DOB:</text>
-  <text x="1200" y="20" text-anchor="left" data-field="sssdob"></text>
-  
+        <rect x="800" y="785" width="200" height="90" class="box female"/>
+        <text x="810" y="805" text-anchor="left" class="name" data-chain="ddrabbitry,ddam"></text>
+        <text x="810" y="825" text-anchor="left" class="label">Color:</text>
+        <text x="850" y="825" text-anchor="left" data-field="ddcolor">  </text>
+        <text x="810" y="845" text-anchor="left" class="label">Ear#:</text>
+        <text x="850" y="845" text-anchor="left" data-field="ddear"></text>
+        <text x="980" y="845" text-anchor="left" class="label">Weight:</text>
+        <text x="1030" y="845" text-anchor="left" data-field="ddweight"></text>
+        <text x="810" y="865" text-anchor="left" class="label">Sex:</text>
+        <text x="850" y="865" text-anchor="left" data-field="ddsex"></text>
+        <text x="980" y="865" text-anchor="left" class="label">Legs:</text>
+        <text x="1030" y="865" text-anchor="left" data-field="ddlegs"> </text>
+        <text x="810" y="885" text-anchor="left" class="label">Reg#:</text>
+        <text x="850" y="885" text-anchor="left" data-field="ddreg"></text>
+        <text x="980" y="885" text-anchor="left" class="label">GC#:</text>
+        <text x="1030" y="885" text-anchor="left" data-field="ddgc"></text>
+        <text x="810" y="905" text-anchor="left" class="label">DOB:</text>
+        <text x="850" y="905" text-anchor="left" data-field="dddob"></text>
 
-  <!-- Sire - Grand Sire - Great Grand Dam -->
-  <rect x="1150" y="35" width="200" height="90" class="box female"/>
-  <text x="1160" y="55" text-anchor="left" class="name" data-chain="ssdrabbitry,ssdam"></text>
-  <text x="1160" y="75" text-anchor="left" class="label">Color:</text>
-  <text x="1200" y="75" text-anchor="left" data-field="ssdcolor">  </text>
-  <text x="1160" y="95" text-anchor="left" class="label">Ear#:</text>
-  <text x="1200" y="95" text-anchor="left" data-field="ssdear"></text>
-  <text x="1280" y="95" text-anchor="left" class="label">Weight:</text>
-  <text x="1330" y="95" text-anchor="left" data-field="ssdweight"></text>
-  <text x="1160" y="115" text-anchor="left" class="label">Sex:</text>
-  <text x="1200" y="115" text-anchor="left" data-field="ssdsex"></text>
-  <text x="1280" y="115" text-anchor="left" class="label">Legs:</text>
-  <text x="1320" y="115" text-anchor="left" data-field="ssdlegs"> </text>
-  <text x="1160" y="135" text-anchor="left" class="label">Reg#:</text>
-  <text x="1200" y="135" text-anchor="left" data-field="ssdreg"></text>
-  <text x="1280" y="135" text-anchor="left" class="label">GC#:</text>
-  <text x="1320" y="135" text-anchor="left" data-field="ssdgc"></text>
-  <text x="1160" y="155" text-anchor="left" class="label">DOB:</text>
-  <text x="1200" y="155" text-anchor="left" data-field="ssddob"></text>
+        <line x1="1120" y1="850" x2="1150" y2="785" stroke="black"/>
+        <line x1="1120" y1="850" x2="1150" y2="920" stroke="black"/>
 
- 
-  <!-- Sire - Grand Dam - Great Grand Sire -->
-  <rect x="1150" y="170" width="200" height="90" class="box male"/>
-  <text x="1160" y="190" text-anchor="left" class="name" data-chain="sdsrabbitry,sdsire"></text>
-  <text x="1160" y="210" text-anchor="left" class="label">Color:</text>
-  <text x="1200" y="210" text-anchor="left" data-field="sdscolor">  </text>
-  <text x="1160" y="230" text-anchor="left" class="label">Ear#:</text>
-  <text x="1200" y="230" text-anchor="left" data-field="sdsear"></text>
-  <text x="1280" y="230" text-anchor="left" class="label">Weight:</text>
-  <text x="1330" y="230" text-anchor="left" data-field="sdsweight"></text>
-  <text x="1160" y="250" text-anchor="left" class="label">Sex:</text>
-  <text x="1200" y="250" text-anchor="left" data-field="sdssex"></text>
-  <text x="1280" y="250" text-anchor="left" class="label">Legs:</text>
-  <text x="1320" y="250" text-anchor="left" data-field="sdslegs"> </text>
-  <text x="1160" y="270" text-anchor="left" class="label">Reg#:</text>
-  <text x="1200" y="270" text-anchor="left" data-field="sdsreg"></text>
-  <text x="1280" y="270" text-anchor="left" class="label">GC#:</text>
-  <text x="1320" y="270" text-anchor="left" data-field="sdsgc"></text>
-  <text x="1160" y="290" text-anchor="left" class="label">DOB:</text>
-  <text x="1200" y="290" text-anchor="left" data-field="sdsdob"></text>
+        <rect x="1150" y="-100" width="200" height="90" class="box male"/>
+        <text x="1160" y="-80" text-anchor="left" class="name" data-chain="sssrabbitry,sssire"></text>
+        <text x="1160" y="-60" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="-60" text-anchor="left" data-field="ssscolor">  </text>
+        <text x="1160" y="-40" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="-40" text-anchor="left" data-field="sssear"></text>
+        <text x="1330" y="-40" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="-40" text-anchor="left" data-field="sssweight"></text>
+        <text x="1160" y="-20" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="-20" text-anchor="left" data-field="ssssex"></text>
+        <text x="1330" y="-20" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="-20" text-anchor="left" data-field="ssslegs"> </text>
+        <text x="1160" y="0" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="0" text-anchor="left" data-field="sssreg"></text>
+        <text x="1330" y="0" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="0" text-anchor="left" data-field="sssgc"></text>
+        <text x="1160" y="20" text-anchor="left" class="label">DOB:</text>
+        <text x="1200" y="20" text-anchor="left" data-field="sssdob"></text>
 
+        <rect x="1150" y="35" width="200" height="90" class="box female"/>
+        <text x="1160" y="55" text-anchor="left" class="name" data-chain="ssdrabbitry,ssdam"></text>
+        <text x="1160" y="75" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="75" text-anchor="left" data-field="ssdcolor">  </text>
+        <text x="1160" y="95" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="95" text-anchor="left" data-field="ssdear"></text>
+        <text x="1330" y="95" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="95" text-anchor="left" data-field="ssdweight"></text>
+        <text x="1160" y="115" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="115" text-anchor="left" data-field="ssdsex"></text>
+        <text x="1330" y="115" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="115" text-anchor="left" data-field="ssdlegs"> </text>
+        <text x="1160" y="135" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="135" text-anchor="left" data-field="ssdreg"></text>
+        <text x="1330" y="135" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="135" text-anchor="left" data-field="ssdgc"></text>
+        <text x="1160" y="155" text-anchor="left" class="label">DOB:</text>
+        <text x="1200" y="155" text-anchor="left" data-field="ssddob"></text>
 
-  <!-- Sire - Grand Dam - Great Grand Dam -->
-  <rect x="1150" y="305" width="200" height="90" class="box female"/>
-  <text x="1160" y="325" text-anchor="left" class="name" data-chain="sddrabbitry,sddam"></text>
-  <text x="1160" y="345" text-anchor="left" class="label">Color:</text>
-  <text x="1200" y="345" text-anchor="left" data-field="sddcolor">  </text>
-  <text x="1160" y="365" text-anchor="left" class="label">Ear#:</text>
-  <text x="1200" y="365" text-anchor="left" data-field="sddear"></text>
-  <text x="1280" y="365" text-anchor="left" class="label">Weight:</text>
-  <text x="1330" y="365" text-anchor="left" data-field="sddweight"></text>
-  <text x="1160" y="385" text-anchor="left" class="label">Sex:</text>
-  <text x="1200" y="385" text-anchor="left" data-field="sddsex"></text>
-  <text x="1280" y="385" text-anchor="left" class="label">Legs:</text>
-  <text x="1320" y="385" text-anchor="left" data-field="sddlegs"> </text>
-  <text x="1160" y="405" text-anchor="left" class="label">Reg#:</text>
-  <text x="1200" y="405" text-anchor="left" data-field="sddreg"></text>
-  <text x="1280" y="405" text-anchor="left" class="label">GC#:</text>
-  <text x="1320" y="405" text-anchor="left" data-field="sddgc"></text>
-  <text x="1160" y="425" text-anchor="left" class="label">DOB:</text>
-  <text x="1200" y="425" text-anchor="left" data-field="sdddob"></text>
+        <rect x="1150" y="170" width="200" height="90" class="box male"/>
+        <text x="1160" y="190" text-anchor="left" class="name" data-chain="sdsrabbitry,sdsire"></text>
+        <text x="1160" y="210" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="210" text-anchor="left" data-field="sdscolor">  </text>
+        <text x="1160" y="230" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="230" text-anchor="left" data-field="sdsear"></text>
+        <text x="1330" y="230" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="230" text-anchor="left" data-field="sdsweight"></text>
+        <text x="1160" y="250" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="250" text-anchor="left" data-field="sdssex"></text>
+        <text x="1330" y="250" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="250" text-anchor="left" data-field="sdslegs"> </text>
+        <text x="1160" y="270" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="270" text-anchor="left" data-field="sdsreg"></text>
+        <text x="1330" y="270" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="270" text-anchor="left" data-field="sdsgc"></text>
+        <text x="1160" y="290" text-anchor="left" class="label">DOB:</text>
+        <text x="1200" y="290" text-anchor="left" data-field="sdsdob"></text>
 
-  
-  <!-- Dam - Grand Sire - Great Grand Sire -->
-  <rect x="1150" y="450" width="200" height="90" class="box male"/>
- <text x="1160" y="470" text-anchor="left" class="name" data-chain="dssrabbitry,dssire"></text>
-  <text x="1160" y="490" text-anchor="left" class="label">Color:</text>
-  <text x="1200" y="490" text-anchor="left" data-field="dsscolor">  </text>
-  <text x="1160" y="510" text-anchor="left" class="label">Ear#:</text>
-  <text x="1200" y="510" text-anchor="left" data-field="dssear"></text>
-  <text x="1280" y="510" text-anchor="left" class="label">Weight:</text>
-  <text x="1330" y="510" text-anchor="left" data-field="dssweight"></text>
-  <text x="1160" y="530" text-anchor="left" class="label">Sex:</text>
-  <text x="1200" y="530" text-anchor="left" data-field="dsssex"></text>
-  <text x="1280" y="530" text-anchor="left" class="label">Legs:</text>
-  <text x="1320" y="530" text-anchor="left" data-field="dsslegs"> </text>
-  <text x="1160" y="550" text-anchor="left" class="label">Reg#:</text>
-  <text x="1200" y="550" text-anchor="left" data-field="dssreg"></text>
-  <text x="1280" y="550" text-anchor="left" class="label">GC#:</text>
-  <text x="1320" y="550" text-anchor="left" data-field="dssgc"></text>
-  <text x="1160" y="570" text-anchor="left" class="label">DOB:</text>
-  <text x="1200" y="570" text-anchor="left" data-field="dssdob"></text>
+        <rect x="1150" y="305" width="200" height="90" class="box female"/>
+        <text x="1160" y="325" text-anchor="left" class="name" data-chain="sddrabbitry,sddam"></text>
+        <text x="1160" y="345" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="345" text-anchor="left" data-field="sddcolor">  </text>
+        <text x="1160" y="365" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="365" text-anchor="left" data-field="sddear"></text>
+        <text x="1330" y="365" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="365" text-anchor="left" data-field="sddweight"></text>
+        <text x="1160" y="385" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="385" text-anchor="left" data-field="sddsex"></text>
+        <text x="1330" y="385" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="385" text-anchor="left" data-field="sddlegs"> </text>
+        <text x="1160" y="405" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="405" text-anchor="left" data-field="sddreg"></text>
+        <text x="1330" y="405" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="405" text-anchor="left" data-field="sddgc"></text>
+        <text x="1160" y="425" text-anchor="left" class="label">DOB:</text>
+        <text x="1200" y="425" text-anchor="left" data-field="sdddob"></text>
 
+        <rect x="1150" y="450" width="200" height="90" class="box male"/>
+        <text x="1160" y="470" text-anchor="left" class="name" data-chain="dssrabbitry,dssire"></text>
+        <text x="1160" y="490" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="490" text-anchor="left" data-field="dsscolor">  </text>
+        <text x="1160" y="510" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="510" text-anchor="left" data-field="dssear"></text>
+        <text x="1330" y="510" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="510" text-anchor="left" data-field="dssweight"></text>
+        <text x="1160" y="530" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="530" text-anchor="left" data-field="dsssex"></text>
+        <text x="1330" y="530" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="530" text-anchor="left" data-field="dsslegs"> </text>
+        <text x="1160" y="550" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="550" text-anchor="left" data-field="dssreg"></text>
+        <text x="1330" y="550" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="550" text-anchor="left" data-field="dssgc"></text>
+        <text x="1160" y="570" text-anchor="left" class="label">DOB:</text>
+        <text x="1200" y="570" text-anchor="left" data-field="dssdob"></text>
 
-  <!-- Dam - Grand Sire - Grand Grand Dam -->
-  <rect x="1150" y="585" width="200" height="90" class="box female"/>
-  <text x="1160" y="605" text-anchor="left" class="name" data-chain="dsdrabbitry,dsdam"></text>
-  <text x="1160" y="625" text-anchor="left" class="label">Color:</text>
-  <text x="1200" y="625" text-anchor="left" data-field="dsdcolor">  </text>
-  <text x="1160" y="645" text-anchor="left" class="label">Ear#:</text>
-  <text x="1200" y="645" text-anchor="left" data-field="dsdear"></text>
-  <text x="1280" y="645" text-anchor="left" class="label">Weight:</text>
-  <text x="1330" y="645" text-anchor="left" data-field="dsdweight"></text>
-  <text x="1160" y="665" text-anchor="left" class="label">Sex:</text>
-  <text x="1200" y="665" text-anchor="left" data-field="dsdsex"></text>
-  <text x="1280" y="665" text-anchor="left" class="label">Legs:</text>
-  <text x="1320" y="665" text-anchor="left" data-field="dsdlegs"> </text>
-  <text x="1160" y="685" text-anchor="left" class="label">Reg#:</text>
-  <text x="1200" y="685" text-anchor="left" data-field="dsdreg"></text>
-  <text x="1280" y="685" text-anchor="left" class="label">GC#:</text>
-  <text x="1320" y="685" text-anchor="left" data-field="dsdgc"></text>
-  <text x="1160" y="705" text-anchor="left" class="label">DOB:</text>
-  <text x="1200" y="705" text-anchor="left" data-field="dsddob"></text>
+        <rect x="1150" y="585" width="200" height="90" class="box female"/>
+        <text x="1160" y="605" text-anchor="left" class="name" data-chain="dsdrabbitry,dsdam"></text>
+        <text x="1160" y="625" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="625" text-anchor="left" data-field="dsdcolor">  </text>
+        <text x="1160" y="645" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="645" text-anchor="left" data-field="dsdear"></text>
+        <text x="1330" y="645" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="645" text-anchor="left" data-field="dsdweight"></text>
+        <text x="1160" y="665" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="665" text-anchor="left" data-field="dsdsex"></text>
+        <text x="1330" y="665" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="665" text-anchor="left" data-field="dsdlegs"> </text>
+        <text x="1160" y="685" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="685" text-anchor="left" data-field="dsdreg"></text>
+        <text x="1330" y="685" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="685" text-anchor="left" data-field="dsdgc"></text>
+        <text x="1160" y="705" text-anchor="left" class="label">DOB:</text>
+        <text x="1200" y="705" text-anchor="left" data-field="dsddob"></text>
 
+        <rect x="1150" y="720" width="200" height="90" class="box male"/>
+        <text x="1160" y="740" text-anchor="left" class="name" data-chain="ddsrabbitry,ddsire"></text>
+        <text x="1160" y="760" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="760" text-anchor="left" data-field="ddscolor">  </text>
+        <text x="1160" y="780" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="780" text-anchor="left" data-field="ddsear"></text>
+        <text x="1330" y="780" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="780" text-anchor="left" data-field="ddsweight"></text>
+        <text x="1160" y="800" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="800" text-anchor="left" data-field="ddssex"></text>
+        <text x="1330" y="800" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="800" text-anchor="left" data-field="ddslegs"> </text>
+        <text x="1160" y="820" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="820" text-anchor="left" data-field="ddsreg"></text>
+        <text x="1330" y="820" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="820" text-anchor="left" data-field="ddsgc"></text>
+        <text x="1160" y="840" text-anchor="left" class="label">DOB:</text>
+        <text x="1200" y="840" text-anchor="left" data-field="ddsdob"></text>
 
-  <!-- Dam - Grand Dam - Great Grand Sire-->
-  <rect x="1150" y="720" width="200" height="90" class="box male"/>
-  <text x="1160" y="740" text-anchor="left" class="name" data-chain="ddsrabbitry,ddsire"></text>
-  <text x="1160" y="760" text-anchor="left" class="label">Color:</text>
-  <text x="1200" y="760" text-anchor="left" data-field="ddscolor">  </text>
-  <text x="1160" y="780" text-anchor="left" class="label">Ear#:</text>
-  <text x="1200" y="780" text-anchor="left" data-field="ddsear"></text>
-  <text x="1280" y="780" text-anchor="left" class="label">Weight:</text>
-  <text x="1330" y="780" text-anchor="left" data-field="ddsweight"></text>
-  <text x="1160" y="800" text-anchor="left" class="label">Sex:</text>
-  <text x="1200" y="800" text-anchor="left" data-field="ddssex"></text>
-  <text x="1280" y="800" text-anchor="left" class="label">Legs:</text>
-  <text x="1320" y="800" text-anchor="left" data-field="ddslegs"> </text>
-  <text x="1160" y="820" text-anchor="left" class="label">Reg#:</text>
-  <text x="1200" y="820" text-anchor="left" data-field="ddsreg"></text>
-  <text x="1280" y="820" text-anchor="left" class="label">GC#:</text>
-  <text x="1320" y="820" text-anchor="left" data-field="ddsgc"></text>
-  <text x="1160" y="840" text-anchor="left" class="label">DOB:</text>
-  <text x="1200" y="840" text-anchor="left" data-field="ddsdob"></text>
+        <rect x="1150" y="855" width="200" height="90" class="box female"/>
+        <text x="1160" y="875" text-anchor="left" class="name" data-chain="dddrabbitry,dddam"></text>
+        <text x="1160" y="895" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="895" text-anchor="left" data-field="dddcolor">  </text>
+        <text x="1160" y="915" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="915" text-anchor="left" data-field="dddear"></text>
+        <text x="1330" y="915" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="915" text-anchor="left" data-field="dddweight"></text>
+        <text x="1160" y="935" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="935" text-anchor="left" data-field="dddsex"></text>
+        <text x="1330" y="935" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="935" text-anchor="left" data-field="dddlegs"> </text>
+        <text x="1160" y="955" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="955" text-anchor="left" data-field="dddreg"></text>
+        <text x="1330" y="955" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="955" text-anchor="left" data-field="dddgc"></text>
+        <text x="1160" y="975" text-anchor="left" class="label">DOB:</text>
+        <text x="1200" y="975" text-anchor="left" data-field="ddddob"></text>
 
+        <text
+          id="pedigree-credit"
+          class="credit"
+          x="1150"
+          y="1000"
+          text-anchor="end"
+          aria-label="Pedigree credit">
+          Pedigree built on the ShowTails LLC platform - www.showtails.com
+        </text>
 
-  <!-- Dam - Grand Dam - Great Grand Dam-->
-  <rect x="1150" y="855" width="200" height="90" class="box female"/>
-  <text x="1160" y="875" text-anchor="left" class="name" data-chain="dddrabbitry,dddam"></text>
-  <text x="1160" y="895" text-anchor="left" class="label">Color:</text>
-  <text x="1200" y="895" text-anchor="left" data-field="dddcolor">  </text>
-  <text x="1160" y="915" text-anchor="left" class="label">Ear#:</text>
-  <text x="1200" y="915" text-anchor="left" data-field="dddear"></text>
-  <text x="1280" y="915" text-anchor="left" class="label">Weight:</text>
-  <text x="1330" y="915" text-anchor="left" data-field="dddweight"></text>
-  <text x="1160" y="935" text-anchor="left" class="label">Sex:</text>
-  <text x="1200" y="935" text-anchor="left" data-field="dddsex"></text>
-  <text x="1280" y="935" text-anchor="left" class="label">Legs:</text>
-  <text x="1320" y="935" text-anchor="left" data-field="dddlegs"> </text>
-  <text x="1160" y="955" text-anchor="left" class="label">Reg#:</text>
-  <text x="1200" y="955" text-anchor="left" data-field="dddreg"></text>
-  <text x="1280" y="955" text-anchor="left" class="label">GC#:</text>
-  <text x="1320" y="955" text-anchor="left" data-field="dddgc"></text>
-  <text x="1160" y="975" text-anchor="left" class="label">DOB:</text>
-  <text x="1200" y="975" text-anchor="left" data-field="ddddob"></text>
+      </svg>
+    </div>
+  </div>
 
-    
- 
-</svg>
-</div>
-  <button id="print-btn" style="
-  position: absolute; 
-  top: 10px; 
-  right: 10px; 
-  padding: 8px 16px; 
-  background-color: #4A4A4A; 
-  color: white; 
-  border: none; 
-  border-radius: 4px; 
-  cursor: pointer;
-">Print / Save PDF</button>
+  <!-- Your existing data-binding script -->
+  <script src="pedigree.js"></script>
 
+  <!-- Load logo/signature/background via query params -->
+  <script>
+    const params = new URLSearchParams(window.location.search);
 
-<!-- Your data/field logic -->
-<script src="pedigree.js"></script>
-  
-<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+    function setSvgImage(id, paramName) {
+      const url = params.get(paramName);
+      if (!url) return;
+      const decoded = decodeURIComponent(url);
+      const el = document.getElementById(id);
+      if (!el) return;
 
-<script>
-(function () {
-  const svg = document.getElementById('pedigree-svg');
-  const container = document.getElementById('pedigree-container');
-
-  function validBox(vb) {
-    return vb && isFinite(vb.width) && vb.width > 0 && isFinite(vb.height) && vb.height > 0;
-  }
-
-  let panZoom = null;
-  let initialized = false;
-
-  function fitToContainer() {
-    if (!panZoom) return;
-    const vb = svg.viewBox.baseVal;
-    if (!validBox(vb)) return;
-    const cw = container.clientWidth;
-    const ch = container.clientHeight;
-    if (!cw || !ch) return;
-
-    const scale = Math.min(cw / vb.width, ch / vb.height);
-    if (isFinite(scale) && scale > 0) {
-      panZoom.zoom(scale);
-      panZoom.pan({
-        x: (cw - vb.width * scale) / 2,
-        y: (ch - vb.height * scale) / 2
-      });
-    }
-  }
-
-  function tryInit() {
-    if (initialized) return;
-
-    // Library blocked by CSP/CDN? Fail loudly once so we know what’s wrong in Glide.
-    if (typeof window.svgPanZoom !== 'function') {
-      console.error('svg-pan-zoom not loaded. If this only happens inside Glide, host the script yourself or allow this CDN.');
-      return;
+      // Set both modern and legacy attributes for cross-browser support
+      el.setAttribute('href', decoded);
+      el.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', decoded);
     }
 
-    const vb = svg.viewBox.baseVal;
-    const cw = container.clientWidth;
-    const ch = container.clientHeight;
-    if (!validBox(vb) || !cw || !ch) return; // wait until non-zero
+    setSvgImage('logo', 'logo');
+    setSvgImage('signature', 'signature');
+    setSvgImage('background-image', 'background-image');
+  </script>
 
-    panZoom = svgPanZoom(svg, {
-      panEnabled: true,
-      zoomEnabled: true,
-      mouseWheelZoomEnabled: true,
-      controlIconsEnabled: false,
-      fit: false,
-      center: false,
-      minZoom: 0.25,
-      maxZoom: 10,
-      dblClickZoomEnabled: true,
-      // smoother in some webviews:
-      onUpdatedCTM: function() {} // noop to avoid unnecessary animations
-    });
+  <!-- Android-safe export to PNG (print/share reliably) -->
+  <script>
+    document.getElementById("export-btn").addEventListener("click", async () => {
+      const svg = document.getElementById("pedigree-svg");
 
-    fitToContainer();
-    wirePointerHandlers();  // robust pan & pinch in tricky webviews
-    wireWheelZoom();        // desktop wheel-zoom
-    initialized = true;
-  }
+      // Ensure any async image bindings have a moment to paint
+      await new Promise(r => setTimeout(r, 50));
 
-  // Desktop wheel zoom
-  function wireWheelZoom() {
-    container.addEventListener('wheel', (e) => {
-      if (!panZoom) return;
-      // zoom around cursor
-      const rect = svg.getBoundingClientRect();
-      const point = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-      const delta = e.deltaY;
-      const factor = delta > 0 ? 0.9 : 1.1;
-      e.preventDefault();
+      // Serialize SVG
+      const serializer = new XMLSerializer();
+      let svgData = serializer.serializeToString(svg);
 
-      if (isFinite(point.x) && isFinite(point.y)) {
-        panZoom.zoomAtPoint(factor, point);
+      // Ensure xmlns is present in serialized markup (some WebViews omit it)
+      if (!svgData.includes('xmlns="http://www.w3.org/2000/svg"')) {
+        svgData = svgData.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
       }
-    }, { passive: false });
-  }
-  // === Mouse and single-finger pan ===
-  function enablePointerPan() {
-    let isPanning = false;
-    let start = { x: 0, y: 0 };
-    svg.addEventListener("pointerdown", (e) => {
-      isPanning = true;
-      start = { x: e.clientX, y: e.clientY };
-      svg.setPointerCapture(e.pointerId);
-    });
-    svg.addEventListener("pointermove", (e) => {
-      if (!isPanning || !panZoom) return;
-      const dx = e.clientX - start.x;
-      const dy = e.clientY - start.y;
-      panZoom.panBy({ x: dx, y: dy });
-      start = { x: e.clientX, y: e.clientY };
-    });
-    svg.addEventListener("pointerup", () => (isPanning = false));
-    svg.addEventListener("pointercancel", () => (isPanning = false));
-  }
+      if (!svgData.includes('xmlns:xlink="http://www.w3.org/1999/xlink"')) {
+        svgData = svgData.replace('<svg', '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+      }
 
-  // === Two-finger pinch zoom for mobile ===
-  function enablePinchZoom() {
-    let pinchActive = false;
-    let lastDistance = null;
+      // Hi-res canvas for printing
+      const canvas = document.createElement("canvas");
+      canvas.width = 3300;  // ~300dpi-ish landscape
+      canvas.height = 2550;
+      const ctx = canvas.getContext("2d");
 
-    svg.addEventListener(
-      "touchstart",
-      (e) => {
-        if (e.touches.length === 2) {
-          pinchActive = true;
-          lastDistance = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
+      const img = new Image();
+
+      // Important: make blob URL from SVG
+      const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+
+      img.onload = () => {
+        // White background
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+
+        // Convert to PNG and open in new tab (Android can Print/Share from there)
+        const png = canvas.toDataURL("image/png");
+
+        const win = window.open();
+        if (!win) {
+          alert("Please allow pop-ups so ShowTails can open the pedigree image for printing.");
+          return;
         }
-      },
-      { passive: false }
-    );
+        win.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Pedigree Image</title>
+            <style>
+              html, body { margin:0; padding:0; background:white; }
+              img { width:100%; height:auto; display:block; }
+              .hint { font-family: Arial, sans-serif; padding: 10px; text-align:center; color:#333; }
+            </style>
+          </head>
+          <body>
+            <div class="hint">Use your browser menu to <b>Print</b> or <b>Share</b> this pedigree.</div>
+            <img src="${png}" alt="Pedigree PNG" />
+          </body>
+          </html>
+        `);
+        win.document.close();
+      };
 
-    svg.addEventListener(
-      "touchmove",
-      (e) => {
-        if (pinchActive && e.touches.length === 2 && panZoom) {
-          e.preventDefault();
-          const newDistance = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-          const scale = newDistance / lastDistance;
-          if (isFinite(scale) && scale > 0 && scale !== 1) {
-            const rect = svg.getBoundingClientRect();
-            const mid = {
-              x: (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left,
-              y: (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top,
-            };
-            panZoom.zoomAtPoint(scale, mid);
-          }
-          lastDistance = newDistance;
-        }
-      },
-      { passive: false }
-    );
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        alert("Unable to export pedigree image. If your background/logo are hosted with hotlink protection, try hosting them on the same domain as this page.");
+      };
 
-    svg.addEventListener("touchend", () => {
-      pinchActive = false;
-      lastDistance = null;
+      img.src = url;
     });
-  }
+  </script>
 
-  // === Refit on resize or visibility changes ===
-  const ro = new ResizeObserver(() => {
-    if (!initialized) tryInit();
-    else fitToContainer();
-  });
-  ro.observe(container);
-
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") {
-      if (!initialized) tryInit();
-      else fitToContainer();
-    }
-  });
-
-  window.addEventListener("load", tryInit);
-})();
-</script>
-
-<script>
-/* === True centered printing for both desktop and mobile === */
-(() => {
-  const btn = document.getElementById("print-btn");
-
-  function resetForPrint() {
-    const inst = window.panZoomInstance;
-    if (!inst) return;
-
-    // Save current transform
-    const saved = {
-      pan: inst.getPan(),
-      zoom: inst.getZoom()
-    };
-    window._savedTransform = saved;
-
-    // Reset everything so the pedigree is perfectly centered & scaled for print
-    inst.resetZoom();
-    inst.center();
-
-    // Match SVG width to 11" printable area (≈1056 px @ 96 DPI)
-    const svgWidth = 1600;
-    const targetPx = 1056;
-    const scale = targetPx / svgWidth;
-    inst.zoom(scale);
-
-    // Force the SVG to actually recalculate before printing
-    inst.pan({ x: 0, y: 0 });
-    inst.updateBBox();
-    inst.resize();
-  }
-
-  function restoreAfterPrint() {
-    const inst = window.panZoomInstance;
-    const saved = window._savedTransform;
-    if (inst && saved) {
-      inst.zoom(saved.zoom);
-      inst.pan(saved.pan);
-    }
-  }
-
-  btn.addEventListener("click", () => {
-    const inst = window.panZoomInstance;
-    if (!inst) {
-      window.print();
-      return;
-    }
-
-    resetForPrint();
-
-    // Let the browser render the new transform before printing
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        window.print();
-
-        // Wait for print dialog to close, then restore position
-        setTimeout(restoreAfterPrint, 1000);
-      }, 300);
+  <!-- Optional: Keep your Glide click messaging (works if you still want it) -->
+  <script>
+    document.querySelectorAll('.box').forEach(box => {
+      box.style.cursor = 'pointer';
+      box.addEventListener('click', () => {
+        const slot = box.getAttribute('data-slot');
+        if (!slot) return;
+        window.parent.postMessage({ pedigreeEdit: slot }, '*');
+        box.style.stroke = '#00aaff';
+        setTimeout(() => (box.style.stroke = 'black'), 300);
+      });
     });
-  });
+  </script>
 
-  // Auto-reset when user prints via Ctrl+P or share sheet
-  window.addEventListener("beforeprint", resetForPrint);
-  window.addEventListener("afterprint", restoreAfterPrint);
-
-  // Fix mobile re-centering after orientation change
-  window.addEventListener("orientationchange", () => {
-    const inst = window.panZoomInstance;
-    if (inst) setTimeout(() => resetForPrint(), 600);
-  });
-})();
-</script>
-
-  
-  
-  <script>
-  const params = new URLSearchParams(window.location.search);
-  const logoUrl = params.get('logo');
-  if (logoUrl) {
-    const decoded = decodeURIComponent(logoUrl);
-    const logoEl = document.getElementById('logo');
-    logoEl.setAttribute('href', decoded);
-  }
-</script>
-
-
-  <script>
-// === Glide-safe Clickable Pedigree Boxes ===
-document.querySelectorAll('.box').forEach(box => {
-  box.style.cursor = 'pointer';
-  box.addEventListener('click', () => {
-    const slot = box.getAttribute('data-slot');
-    if (!slot) return;
-    window.parent.postMessage({ pedigreeEdit: slot }, '*');
-    box.style.stroke = '#00aaff';
-    setTimeout(() => (box.style.stroke = 'black'), 300);
-  });
-});
-</script>
 </body>
-
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
