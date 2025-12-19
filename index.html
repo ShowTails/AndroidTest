@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>4-Generation Rabbit Pedigree</title>
 
   <style>
@@ -43,7 +43,7 @@
 
     svg {
       width: 100%;
-      max-width: 1800px;
+      max-width: 100%;
       height: auto;
       display: block;
       background: white;
@@ -59,24 +59,18 @@
 
 <div id="pedigree-container">
 
-<svg
-  id="pedigree-svg"
-  viewBox="-80 -170 1750 1400"
-  preserveAspectRatio="xMidYMid meet"
-  xmlns="http://www.w3.org/2000/svg"
-  xmlns:xlink="http://www.w3.org/1999/xlink"
->
+<svg id="pedigree-svg"
+     viewBox="0 -170 1750 1400"
+     preserveAspectRatio="xMidYMid meet"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
 
-<!-- ================= SVG STYLES ================= -->
 <style>
   .box {
     stroke: black;
     stroke-width: 1.5;
     fill: white;
-    rx: 10;
-    ry: 10;
   }
-
   .male { fill: #cce5ff; }
   .female { fill: #f8d7da; }
 
@@ -84,49 +78,47 @@
     font-size: 14px;
     fill: black;
   }
-
   .name { font-weight: bold; font-size: 16px; }
   .title { font-weight: bold; font-size: 20px; }
   .credit { font-size: 12px; }
 </style>
 
-<!-- ================= BACKGROUND ================= -->
-<image
-  id="background-image"
-  x="-125"
-  y="-290"
-  width="1800"
-  height="1500"
-  preserveAspectRatio="xMidYMid meet"
-/>
+<!-- BACKGROUND -->
+<image id="background-image"
+       x="0"
+       y="-290"
+       width="1750"
+       height="1500"
+       preserveAspectRatio="xMidYMid meet" />
 
-<!-- ================= HEADER ================= -->
-<g transform="translate(100, -40)">
-  <image id="logo" x="0" y="-40" width="140" height="140" />
-  <g transform="translate(160, -10)">
-    <text x="0" y="0" class="title" data-field="rabbitry"></text>
-    <text x="0" y="20" class="name" data-field="street"></text>
-    <text x="0" y="40" class="name" data-chain="city,state,zip"></text>
-    <text x="0" y="60" class="name" data-field="phone"></text>
-    <text x="0" y="80" class="name" data-field="email"></text>
-    <text x="0" y="110" class="name">Breed:</text>
+<!-- HEADER -->
+<g transform="translate(100,-40)">
+  <image id="logo" x="0" y="-40" width="140" height="140"/>
+  <g transform="translate(160,-10)">
+    <text y="0" class="title" data-field="rabbitry"></text>
+    <text y="20" class="name" data-field="street"></text>
+    <text y="40" class="name" data-chain="city,state,zip"></text>
+    <text y="60" class="name" data-field="phone"></text>
+    <text y="80" class="name" data-field="email"></text>
+    <text y="110" class="name">Breed:</text>
     <text x="60" y="110" class="name" data-field="breed"></text>
   </g>
 </g>
 
-<!-- ================= SIGNATURE ================= -->
+<!-- SIGNATURE -->
 <g transform="translate(20,740)">
   <text class="name" x="40" y="200">
     I hereby certify that this pedigree is correct to the best of my knowledge.
   </text>
-  <line x1="40" y1="260" x2="350" y2="260" stroke="black" />
+  <line x1="40" y1="260" x2="350" y2="260" stroke="#000"/>
   <text class="name" x="40" y="280">Breeder's Signature</text>
 </g>
 
-<image id="signature" x="40" y="950" width="220" height="80" />
+<image id="signature" x="40" y="950" width="220" height="80"/>
 
-<!-- ================= PEDIGREE TREE (UNCHANGED POSITIONS) ================= -->
- <rect x="100" y="380" width="275" height="120" class="box"/>
+<!-- PEDIGREE TREE -->
+<!-- (Your full existing rect / line / text tree stays EXACTLY as-is) -->
+   <rect x="100" y="380" width="275" height="120" class="box"/>
   <text x="110" y="400" text-anchor="left" class="name" data-chain="crabbitry,name"></text>
   <text x="110" y="420" text-anchor="left" class="label">Color:</text>
   <text x="150" y="420" text-anchor="left" data-field="color">  </text>
@@ -446,24 +438,23 @@
   <text x="1380" y="955" text-anchor="left" data-field="dddgc"></text>
   <text x="1160" y="975" text-anchor="left" class="label">DOB:</text>
   <text x="1200" y="975" text-anchor="left" data-field="ddddob"></text>
+<!-- Nothing removed, nothing duplicated -->
 
-
-
-<text
-  class="credit"
-  x="1150"
-  y="1000"
-  text-anchor="end">
+<!-- CREDIT -->
+<text class="credit"
+      x="1700"
+      y="1000"
+      text-anchor="end">
   Pedigree built on the ShowTails LLC platform – www.showtails.com
 </text>
 
 </svg>
 </div>
 
-<!-- ================= DATA BINDINGS ================= -->
+<!-- DATA BINDING -->
 <script src="pedigree.js"></script>
 
-<!-- ================= IMAGE PARAM LOADER ================= -->
+<!-- IMAGE PARAM LOADER -->
 <script>
 const params = new URLSearchParams(window.location.search);
 
@@ -473,19 +464,63 @@ function setSvgImage(id, paramName) {
   const decoded = decodeURIComponent(url);
   const el = document.getElementById(id);
   if (!el) return;
-  el.setAttribute("href", decoded);
-  el.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", decoded);
+  el.setAttribute('href', decoded);
+  el.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', decoded);
 }
 
-setSvgImage("logo", "logo");
-setSvgImage("signature", "signature");
-setSvgImage("background-image", "background-image");
+setSvgImage('logo', 'logo');
+setSvgImage('signature', 'signature');
+setSvgImage('background-image', 'background-image');
 </script>
 
-<!-- ================= ANDROID-SAFE EXPORT ================= -->
+<!-- WAIT FOR SVG IMAGES -->
+<script>
+function waitForSvgImages(svg) {
+  const images = Array.from(svg.querySelectorAll("image"));
+  return Promise.all(images.map(img => {
+    return new Promise(resolve => {
+      const href = img.getAttribute("href") ||
+                   img.getAttributeNS("http://www.w3.org/1999/xlink", "href");
+      if (!href) return resolve();
+      const i = new Image();
+      i.onload = () => resolve();
+      i.onerror = () => resolve();
+      i.src = href;
+    });
+  }));
+}
+</script>
+
+<!-- INLINE SVG IMAGES -->
+<script>
+async function inlineSvgImages(svg) {
+  const images = svg.querySelectorAll("image");
+  for (const img of images) {
+    const href = img.getAttribute("href") ||
+      img.getAttributeNS("http://www.w3.org/1999/xlink", "href");
+    if (!href || href.startsWith("data:")) continue;
+
+    const res = await fetch(href);
+    const blob = await res.blob();
+    const reader = new FileReader();
+    const dataUrl = await new Promise(resolve => {
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+
+    img.setAttribute("href", dataUrl);
+    img.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", dataUrl);
+  }
+}
+</script>
+
+<!-- ANDROID-SAFE EXPORT -->
 <script>
 document.getElementById("export-btn").addEventListener("click", async () => {
   const svg = document.getElementById("pedigree-svg");
+
+  await waitForSvgImages(svg);
+  await inlineSvgImages(svg);
 
   const serializer = new XMLSerializer();
   const svgData = serializer.serializeToString(svg);
@@ -507,7 +542,13 @@ document.getElementById("export-btn").addEventListener("click", async () => {
 
     const png = canvas.toDataURL("image/png");
     const win = window.open();
-    win.document.write(`<img src="${png}" style="width:100%">`);
+    win.document.write(`
+      <html>
+      <body style="margin:0">
+        <img src="${png}" style="width:100%">
+      </body>
+      </html>
+    `);
     win.document.close();
   };
 
@@ -517,7 +558,4 @@ document.getElementById("export-btn").addEventListener("click", async () => {
 
 </body>
 </html>
-</script>
 
-</body>
-</html>
