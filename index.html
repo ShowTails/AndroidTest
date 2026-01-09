@@ -526,8 +526,8 @@ document.getElementById("export-btn").addEventListener("click", async () => {
   const svgData = serializer.serializeToString(svg);
 
   const canvas = document.createElement("canvas");
-  canvas.width = 3500;
-  canvas.height = 2800;
+  canvas.width = 3600;
+  canvas.height = 2900;
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "white";
   ctx.fillRect(250, 0, canvas.width, canvas.height);
@@ -546,8 +546,8 @@ const drawWidth = img.width * scale;
 const drawHeight = img.height * scale;
 
 /* VISUAL TUNING OFFSETS */
-const horizontalNudge = 80;   // move RIGHT
-const verticalNudge = 120;    // move DOWN
+const horizontalNudge = 100;   // move RIGHT
+const verticalNudge = 140;    // move DOWN
 
 const offsetX = (canvas.width - drawWidth) / 2 + horizontalNudge;
 const offsetY = (canvas.height - drawHeight) / 2 + verticalNudge;
