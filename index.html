@@ -537,7 +537,19 @@ document.getElementById("export-btn").addEventListener("click", async () => {
   const url = URL.createObjectURL(blob);
 
   img.onload = () => {
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const scale = Math.min(
+  canvas.width / img.width,
+  canvas.height / img.height
+);
+
+const drawWidth = img.width * scale;
+const drawHeight = img.height * scale;
+
+const offsetX = (canvas.width - drawWidth) / 2;
+const offsetY = (canvas.height - drawHeight) / 2;
+
+ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+
     URL.revokeObjectURL(url);
 
     const png = canvas.toDataURL("image/png");
