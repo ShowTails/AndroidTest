@@ -530,7 +530,7 @@ document.getElementById("export-btn").addEventListener("click", async () => {
   canvas.height = 2800;
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "white";
-  ctx.fillRect(100, 0, canvas.width, canvas.height);
+  ctx.fillRect(250, 0, canvas.width, canvas.height);
 
   const img = new Image();
   const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
