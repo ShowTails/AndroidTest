@@ -537,7 +537,7 @@ document.getElementById("export-btn").addEventListener("click", async () => {
   const url = URL.createObjectURL(blob);
 
   img.onload = () => {
-    const scale = Math.min(
+ const scale = Math.min(
   canvas.width / img.width,
   canvas.height / img.height
 );
@@ -545,10 +545,15 @@ document.getElementById("export-btn").addEventListener("click", async () => {
 const drawWidth = img.width * scale;
 const drawHeight = img.height * scale;
 
-const offsetX = (canvas.width - drawWidth) / 2;
-const offsetY = (canvas.height - drawHeight) / 2;
+/* VISUAL TUNING OFFSETS */
+const horizontalNudge = 80;   // move RIGHT
+const verticalNudge = 120;    // move DOWN
+
+const offsetX = (canvas.width - drawWidth) / 2 + horizontalNudge;
+const offsetY = (canvas.height - drawHeight) / 2 + verticalNudge;
 
 ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+
 
     URL.revokeObjectURL(url);
 
