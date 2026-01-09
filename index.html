@@ -1,54 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>4-Generation Rabbit Pedigree</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>4-Generation Rabbit Pedigree</title>
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: white;
-      font-family: Arial, sans-serif;
-    }
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  background: white;
+  font-family: Arial, sans-serif;
+}
 
-    #toolbar {
-      position: sticky;
-      top: 0;
-      background: white;
-      padding: 10px;
-      border-bottom: 1px solid #ccc;
-      text-align: center;
-      z-index: 10;
-    }
+#toolbar {
+  position: sticky;
+  top: 0;
+  background: white;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+  z-index: 10;
+}
 
-    #export-btn {
-      padding: 8px 16px;
-      background-color: #4A4A4A;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 15px;
-    }
+#export-btn {
+  padding: 8px 16px;
+  background-color: #4A4A4A;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 15px;
+}
 
-    #pedigree-container {
-      width: 100%;
-      overflow-x: auto;
-      display: flex;
-      justify-content: center;
-      background: white;
-    }
+#pedigree-container {
+  width: 100%;
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+  background: white;
+}
 
-    svg {
-      width: 100%;
-      max-width: 100%;
-      height: auto;
-      display: block;
-      background: white;
-    }
-  </style>
+svg {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  background: white;
+}
+</style>
 </head>
 
 <body>
@@ -66,21 +66,21 @@
      xmlns:xlink="http://www.w3.org/1999/xlink">
 
 <style>
-  .box {
-    stroke: black;
-    stroke-width: 1.5;
-    fill: white;
-  }
-  .male { fill: #cce5ff; }
-  .female { fill: #f8d7da; }
+.box {
+  stroke: black;
+  stroke-width: 1.5;
+  fill: white;
+}
+.male { fill: #cce5ff; }
+.female { fill: #f8d7da; }
 
-  text {
-    font-size: 14px;
-    fill: black;
-  }
-  .name { font-weight: bold; font-size: 16px; }
-  .title { font-weight: bold; font-size: 20px; }
-  .credit { font-size: 12px; }
+text {
+  font-size: 14px;
+  fill: black;
+}
+.name { font-weight: bold; font-size: 16px; }
+.title { font-weight: bold; font-size: 20px; }
+.credit { font-size: 12px; }
 </style>
 
 <!-- BACKGROUND -->
@@ -89,7 +89,7 @@
        y="-325"
        width="1750"
        height="1500"
-       preserveAspectRatio="xMidYMid meet" />
+       preserveAspectRatio="xMidYMid meet"/>
 
 <!-- HEADER -->
 <g transform="translate(100,-40)">
@@ -116,7 +116,9 @@
 
 <image id="signature" x="40" y="950" width="220" height="80"/>
 
-<!-- PEDIGREE TREE -->
+<!-- ================= PEDIGREE TREE ================= -->
+<!-- (UNCHANGED – your full rect/line/text tree remains exactly as provided) -->
+  <!-- PEDIGREE TREE -->
 <!-- (Your full existing rect / line / text tree stays EXACTLY as-is) -->
    <rect x="100" y="380" width="300" height="125" class="box"/>
   <text x="110" y="400" text-anchor="left" class="name" data-chain="crabbitry,name"></text>
@@ -440,11 +442,9 @@
   <text x="1200" y="975" text-anchor="left" data-field="ddddob"></text>
 <!-- Nothing removed, nothing duplicated -->
 
+
 <!-- CREDIT -->
-<text class="credit"
-      x="1500"
-      y="1000"
-      text-anchor="end">
+<text class="credit" x="1500" y="1000" text-anchor="end">
   Pedigree built on the ShowTails LLC platform – www.showtails.com
 </text>
 
@@ -480,11 +480,11 @@ function waitForSvgImages(svg) {
   return Promise.all(images.map(img => {
     return new Promise(resolve => {
       const href = img.getAttribute("href") ||
-                   img.getAttributeNS("http://www.w3.org/1999/xlink", "href");
+        img.getAttributeNS("http://www.w3.org/1999/xlink", "href");
       if (!href) return resolve();
       const i = new Image();
-      i.onload = () => resolve();
-      i.onerror = () => resolve();
+      i.onload = resolve;
+      i.onerror = resolve;
       i.src = href;
     });
   }));
@@ -514,7 +514,7 @@ async function inlineSvgImages(svg) {
 }
 </script>
 
-<!-- ANDROID-SAFE EXPORT -->
+<!-- ANDROID-SAFE EXPORT (DOWNLOAD PNG) -->
 <script>
 document.getElementById("export-btn").addEventListener("click", async () => {
   const svg = document.getElementById("pedigree-svg");
@@ -541,15 +541,13 @@ document.getElementById("export-btn").addEventListener("click", async () => {
     URL.revokeObjectURL(url);
 
     const png = canvas.toDataURL("image/png");
-    const win = window.open();
-    win.document.write(`
-      <html>
-      <body style="margin:0">
-        <img src="${png}" style="width:100%">
-      </body>
-      </html>
-    `);
-    win.document.close();
+
+    const a = document.createElement("a");
+    a.href = png;
+    a.download = "showtails-pedigree.png";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   img.src = url;
@@ -558,4 +556,8 @@ document.getElementById("export-btn").addEventListener("click", async () => {
 
 </body>
 </html>
+
+
+
+
 
